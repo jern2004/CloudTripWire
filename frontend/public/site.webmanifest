@@ -1,0 +1,9 @@
+{
+  "name": "CloudTripwire Security Dashboard",
+  "short_name": "CloudTripwire",
+  "description": "Multi-cloud honeytoken monitoring",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0f172a",
+  "theme_color": "#38bdf8"
+}
