@@ -3,7 +3,7 @@
 Plant decoy credentials, objects, and links across **AWS & Azure**.  
 When anything touches them, **auto-revoke access**, capture a **forensic evidence bundle**, and publish a full **incident timeline** to a dashboard.
 
-> **Status:** Dashboard MVP live. Cloud IR playbooks and IaC in active development.
+> **Status:** Full AWS pipeline live — honeytoken planted, CloudTrail detecting, Lambda auto-responding in under 30 seconds. Azure side in progress.
 
 ---
 
@@ -19,39 +19,41 @@ CloudTripwire turns that signal into automated containment and a reproducible IR
 
 | Layer | Stack | Status |
 |---|---|---|
-| Incident API | FastAPI · SQLite · Pydantic | Live |
-| Dashboard UI | React · Vite · TailwindCSS · Recharts | Live |
-| AWS canaries + detection | EventBridge · CloudTrail | In progress |
-| AWS auto-IR | Step Functions · Lambda | In progress |
+| Incident API | FastAPI · SQLite · Pydantic | ✅ Live |
+| Dashboard UI | React · Vite · TailwindCSS · Recharts | ✅ Live |
+| AWS canaries | IAM honeytoken · S3 canary bucket · CloudTrail | ✅ Live |
+| AWS detection | EventBridge rules · CloudTrail event patterns | ✅ Live |
+| AWS auto-IR | Lambda · IAM key disable · severity engine · MITRE mapping | ✅ Live |
+| IaC | Terraform (full AWS stack) | ✅ Live |
 | Azure canaries + detection | Storage · Sentinel analytics | In progress |
 | Azure auto-IR | Logic Apps · Microsoft Graph | In progress |
-| IaC | Terraform (AWS + Azure modules) | In progress |
-| Evidence bundler | Python · CloudTrail · VPC flow | In progress |
+| Evidence bundler | CloudTrail ZIP per incident | In progress |
 
 ---
 
 ## Architecture
 
 ```
-Honeytokens (AWS / Azure)
+Decoy IAM key / S3 canary object (AWS)
         │
         ▼
-Detections: CloudTrail logs / Sentinel analytic rules
+   CloudTrail  (logs every API call, even failed ones)
         │
         ▼
-   ┌────┴─────┐
-   │          │
-EventBridge   Sentinel alert
-   │          │
-Step Fns   Logic App
-   │          │
-   └────┬─────┘
-        │  Containment + Evidence capture
+   EventBridge  (pattern-matches on honeytoken username / bucket)
+        │
         ▼
-CloudTripwire Webhook  →  FastAPI  →  SQLite
-                                        │
-                                        ▼
-                                  React Dashboard
+   Lambda — isolate_and_log.py
+        │  • extracts identity, IP, user agent
+        │  • determines severity (Critical / High / Medium)
+        │  • maps to MITRE ATT&CK technique
+        │  • disables IAM key via UpdateAccessKey
+        │  • POSTs structured incident to dashboard
+        ▼
+   FastAPI  →  SQLite
+        │
+        ▼
+   React Dashboard  (auto-refreshes every 15 s)
 ```
 
 **Honeytoken types**
@@ -75,45 +77,45 @@ CloudTripwire Webhook  →  FastAPI  →  SQLite
 
 ```
 cloudtripwire/
-├── backend/                    # FastAPI REST API (live)
+├── backend/                    # FastAPI REST API
 │   ├── app/
-│   │   ├── core/               # Config, utilities
+│   │   ├── core/               # Config, utilities, ID generation
 │   │   ├── routers/            # incidents, metrics, evidence, health
 │   │   ├── models.py           # SQLAlchemy ORM
 │   │   ├── schemas.py          # Pydantic request/response models
 │   │   ├── database.py         # SQLite engine + session
 │   │   └── main.py             # App factory, CORS, router registration
+│   ├── seed.data.py            # Seed sample incidents for demo
 │   └── requirements.txt
 │
-├── frontend/                   # React dashboard (live)
+├── frontend/                   # React dashboard
 │   ├── src/
 │   │   ├── api/                # Axios client + mock data
 │   │   ├── components/         # MetricCard, Charts, IncidentTable, IncidentDetail, Layout
-│   │   ├── pages/              # Dashboard, IncidentDetailPage
+│   │   ├── pages/              # Dashboard, IncidentsPage, IncidentDetailPage
 │   │   ├── styles/             # TailwindCSS + global.css
 │   │   └── utils/              # formatters (timestamp, status colors, truncation)
 │   ├── tailwind.config.js
 │   └── vite.config.js
 │
-├── iac/                        # Terraform (in progress)
-│   ├── aws/                    # canary bucket, EventBridge rule, Step Functions, IAM
-│   └── azure/                  # storage canary, Sentinel rule, Logic App, RBAC
+├── honeytokens/                # Honeytoken deployment + testing
+│   ├── deploy_honeytokens.py   # Creates IAM user, S3 canary, CloudTrail, EventBridge
+│   ├── test_trigger.py         # Simulates attacker using decoy credentials
+│   └── config.json             # AWS account config (no secrets)
 │
-├── detections/                 # Detection logic (in progress)
-│   ├── aws/                    # EventBridge event patterns, Athena SQL
-│   └── azure/                  # KQL analytics rules, sample Sentinel queries
+├── response/
+│   └── aws_lambda/
+│       ├── isolate_and_log.py  # Lambda handler — disable key, determine severity, POST incident
+│       ├── deploy_lambda.py    # Packages and deploys the Lambda function
+│       └── update_dashboard_url.py  # Updates Lambda env var when ngrok URL changes
 │
-├── playbooks/                  # IR automation (in progress)
-│   ├── aws/                    # Step Functions state machine + Lambda handlers
-│   └── azure/                  # Logic App definition + Function code
-│
-├── scripts/
-│   └── attacker/               # Benign "attacker" scripts for local demo/testing
+├── terraform/                  # IaC — full AWS stack
+│   ├── aws.tf                  # IAM user, S3 canary, CloudTrail, EventBridge, Lambda, IAM roles
+│   └── variables.tf
 │
 └── docs/
-    ├── threat-model.md
-    ├── mitre-mapping.md
-    └── demo-guide.md
+    ├── mitre-mapping.md        # Full ATT&CK coverage + severity decision tree
+    └── demo-guide.md           # Pre-demo checklist + 60-second script + interview Q&A
 ```
 
 ---
@@ -222,15 +224,18 @@ Flip to **Live API** once the backend is running.
 ## Roadmap
 
 - [x] FastAPI incident API (CRUD, metrics, evidence, health)
-- [x] React dashboard (metric cards, line/bar charts, incident table, detail page)
-- [ ] AWS S3 canary Terraform module
-- [ ] EventBridge detection rule + CloudTrail integration
-- [ ] Step Functions IR playbook (disable key → isolate SG → EBS snapshot)
+- [x] React dashboard (metric cards, line/bar charts, incident table, detail page, all-incidents page)
+- [x] AWS honeytoken IAM user + S3 canary bucket with tempting files
+- [x] CloudTrail multi-region trail with S3 data events
+- [x] EventBridge detection rules (IAM key use + S3 canary access)
+- [x] Lambda auto-IR: disable key, severity engine, MITRE mapping, POST to dashboard
+- [x] Terraform IaC for full AWS stack (reproducible with `terraform apply`)
+- [x] Attacker simulation script (`honeytokens/test_trigger.py`)
+- [x] MITRE ATT&CK tagging on every ingest
 - [ ] Azure Blob canary + Sentinel analytic rule
 - [ ] Logic App IR playbook (disable SP → revoke sessions → collect logs)
 - [ ] Evidence bundler (ZIP per incident with CloudTrail window + flow logs)
-- [ ] MITRE ATT&CK tag on ingest
-- [ ] Attacker simulation script for local demo
+- [ ] Terraform Azure module
 
 ---
 
