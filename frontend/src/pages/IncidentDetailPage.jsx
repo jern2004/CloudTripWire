@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import IncidentDetail from '../components/IncidentDetail';
-import { 
-  fetchIncidentById, 
+import {
+  fetchIncidentById,
   markIncidentResolved,
-  MOCK_INCIDENT_DETAIL 
+  MOCK_INCIDENT_DETAIL
 } from '../api/incidentAPI';
-import { ArrowLeft, CheckCircle, Loader } from 'lucide-react';
+import { ArrowLeft, CheckCircle, Loader, XCircle } from 'lucide-react';
 
 /**
  * IncidentDetailPage - Full page view for single incident with actions
@@ -19,7 +19,9 @@ const IncidentDetailPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [resolving, setResolving] = useState(false);
-  const [useMockData, setUseMockData] = useState(true);
+  const [useMockData, setUseMockData] = useState(false);
+  // Inline notification: { type: 'success' | 'error', message: string } | null
+  const [notification, setNotification] = useState(null);
 
   /**
    * Fetch incident details
@@ -58,19 +60,21 @@ const IncidentDetailPage = () => {
   const handleMarkResolved = async () => {
     try {
       setResolving(true);
-      
+      setNotification(null);
+
       if (!useMockData) {
         await markIncidentResolved(id);
       }
-      
-      // Update local state
+
+      // Update local state to reflect resolved status
       setIncident(prev => ({ ...prev, status: 'Resolved' }));
-      
-      // Show success message (you can add a toast notification here)
-      alert('Incident marked as resolved successfully!');
+      setNotification({ type: 'success', message: 'Incident marked as resolved successfully.' });
+
+      // Auto-dismiss after 5 seconds
+      setTimeout(() => setNotification(null), 5000);
     } catch (err) {
       console.error('Error resolving incident:', err);
-      alert(`Failed to resolve incident: ${err.message}`);
+      setNotification({ type: 'error', message: `Failed to resolve incident: ${err.message}` });
     } finally {
       setResolving(false);
     }
@@ -162,6 +166,32 @@ const IncidentDetailPage = () => {
           )}
         </div>
       </div>
+
+      {/* Inline notification banner — replaces browser alert() */}
+      {notification && (
+        <div className={`
+          flex items-center justify-between px-4 py-3 rounded-lg border animate-fade-in
+          ${notification.type === 'success'
+            ? 'bg-green-500/10 border-green-500/50 text-green-400'
+            : 'bg-red-500/10 border-red-500/50 text-red-400'
+          }
+        `}>
+          <div className="flex items-center">
+            {notification.type === 'success'
+              ? <CheckCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+              : <XCircle className="w-5 h-5 mr-2 flex-shrink-0" />
+            }
+            <span className="text-sm font-medium">{notification.message}</span>
+          </div>
+          <button
+            onClick={() => setNotification(null)}
+            className="ml-4 text-current opacity-60 hover:opacity-100 transition-opacity"
+            aria-label="Dismiss notification"
+          >
+            ×
+          </button>
+        </div>
+      )}
 
       {/* Incident Detail Component */}
       <IncidentDetail incident={incident} />

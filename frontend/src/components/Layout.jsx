@@ -70,7 +70,7 @@ const Layout = ({ children }) => {
 
             <div className="flex items-center space-x-2">
               <a
-                href="https://github.com/jern2004/CloudTripWire"
+                href="https://github.com/jern2004/CloudTripWire"       
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-2 rounded-lg hover:bg-dark-bg transition-colors"

@@ -1,0 +1,42 @@
+# ── Credentials — NEVER commit these ──────────────────────────────────────────
+honeytokens/honeytoken_keys.txt
+
+# ── Python ────────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.venv/
+venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# ── Database ──────────────────────────────────────────────────────────────────
+*.db
+*.sqlite
+*.sqlite3
+
+# ── Lambda build artifact ──────────────────────────────────────────────────────
+response/aws_lambda/lambda_package.zip
+
+# ── Node / Frontend ───────────────────────────────────────────────────────────
+node_modules/
+frontend/node_modules/
+dist/
+frontend/dist/
+.env
+.env.local
+.env.*.local
+
+# ── Terraform state (contains sensitive data) ─────────────────────────────────
+terraform/.terraform/
+terraform/*.tfstate
+terraform/*.tfstate.backup
+terraform/.terraform.lock.hcl
+
+# ── OS / editor ───────────────────────────────────────────────────────────────
+.DS_Store
+.vscode/
+*.swp
+*.swo

@@ -1,0 +1,52 @@
+{
+  "aws": {
+    "account_id": "100382203640",
+    "region": "us-east-1",
+
+    "iam_honeytoken": {
+      "username": "honeytoken-user",
+      "description": "Decoy IAM user — zero permissions. Any API call using its keys is malicious."
+    },
+
+    "s3_canary": {
+      "bucket_name": "cloudtripwire-canary-100382203640",
+      "files": [
+        {
+          "key": "internal/aws-backup-creds.txt",
+          "content": "AWS_ACCESS_KEY_ID=FAKEKEYDONOTUSE\nAWS_SECRET_ACCESS_KEY=FAKESECRETDONOTUSE",
+          "description": "Looks like a leaked credential file"
+        },
+        {
+          "key": "finance/employee-salaries-2025.csv",
+          "content": "name,salary\nJohn Doe,95000\nJane Smith,102000",
+          "description": "Looks like sensitive HR data"
+        },
+        {
+          "key": "backups/db-dump-prod.sql",
+          "content": "-- Production database backup\n-- Date: 2025-10-01\n-- DO NOT SHARE",
+          "description": "Looks like a database backup"
+        }
+      ]
+    },
+
+    "cloudtrail": {
+      "trail_name": "cloudtripwire-trail",
+      "log_bucket": "cloudtripwire-trail-logs-100382203640"
+    },
+
+    "eventbridge": {
+      "iam_rule_name": "detect-honeytoken-iam",
+      "s3_rule_name":  "detect-honeytoken-s3"
+    },
+
+    "lambda": {
+      "function_name": "cloudtripwire-responder",
+      "role_name":     "cloudtripwire-lambda-role"
+    }
+  },
+
+  "dashboard": {
+    "api_url": "http://127.0.0.1:8000/api/incidents",
+    "note": "Replace with your ngrok URL for end-to-end testing e.g. https://abc123.ngrok.io/api/incidents"
+  }
+}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import MetricCard from '../components/MetricCard';
 import Charts from '../components/Charts';
 import IncidentTable from '../components/IncidentTable';
@@ -32,9 +32,11 @@ const Dashboard = () => {
   const [useMockData, setUseMockData] = useState(true); // Toggle for mock vs real API
 
   /**
-   * Fetch all dashboard data
+   * Fetch all dashboard data.
+   * Wrapped in useCallback so the auto-refresh interval always calls
+   * the latest version (avoids stale closure on useMockData).
    */
-  const fetchDashboardData = async () => {
+  const fetchDashboardData = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -69,21 +71,18 @@ const Dashboard = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [useMockData]); // re-create only when the data source changes
 
   // Initial fetch
   useEffect(() => {
     fetchDashboardData();
-  }, [useMockData]);
+  }, [fetchDashboardData]);
 
-  // Auto-refresh every 15 seconds
+  // Auto-refresh every 15 seconds — interval captures the stable callback ref
   useEffect(() => {
-    const interval = setInterval(() => {
-      fetchDashboardData();
-    }, 15000); // 15 seconds
-
+    const interval = setInterval(fetchDashboardData, 15000);
     return () => clearInterval(interval);
-  }, [useMockData]);
+  }, [fetchDashboardData]);
 
   // Manual refresh handler
   const handleRefresh = () => {
