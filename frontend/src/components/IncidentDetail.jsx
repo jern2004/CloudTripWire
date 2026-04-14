@@ -250,7 +250,7 @@ const IncidentDetail = ({ incident }) => {
           <h3 className="text-lg font-semibold text-dark-text mb-4">
             Threat Intelligence
           </h3>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
             <div className="bg-dark-bg rounded-lg p-4 text-center">
               <p className="text-dark-muted text-sm mb-2">VPN Detected</p>
               <p className={`font-semibold ${incident.threat_indicators.is_vpn ? 'text-red-400' : 'text-green-400'}`}>
@@ -264,9 +264,9 @@ const IncidentDetail = ({ incident }) => {
               </p>
             </div>
             <div className="bg-dark-bg rounded-lg p-4 text-center">
-              <p className="text-dark-muted text-sm mb-2">Known Attacker</p>
-              <p className={`font-semibold ${incident.threat_indicators.is_known_attacker ? 'text-red-400' : 'text-green-400'}`}>
-                {incident.threat_indicators.is_known_attacker ? 'Yes' : 'No'}
+              <p className="text-dark-muted text-sm mb-2">Internal IP</p>
+              <p className={`font-semibold ${incident.threat_indicators.is_internal_ip ? 'text-red-400' : 'text-green-400'}`}>
+                {incident.threat_indicators.is_internal_ip ? 'Yes' : 'No'}
               </p>
             </div>
             <div className="bg-dark-bg rounded-lg p-4 text-center">
@@ -276,6 +276,26 @@ const IncidentDetail = ({ incident }) => {
               </p>
             </div>
           </div>
+
+          {/* MITRE ATT&CK — only shown when Lambda provides it */}
+          {incident.threat_indicators.mitre_id && (
+            <div className="mt-2 p-4 bg-dark-bg rounded-lg border border-accent-primary/30">
+              <p className="text-xs text-accent-primary font-semibold uppercase tracking-wider mb-2">
+                MITRE ATT&CK
+              </p>
+              <div className="flex flex-wrap gap-3">
+                <span className="px-2.5 py-1 rounded bg-accent-primary/20 text-accent-primary text-sm font-mono font-medium">
+                  {incident.threat_indicators.mitre_id}
+                </span>
+                <span className="text-dark-text text-sm">
+                  {incident.threat_indicators.mitre_technique}
+                </span>
+                <span className="text-dark-muted text-sm">
+                  — {incident.threat_indicators.mitre_tactic}
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       )}
     </div>

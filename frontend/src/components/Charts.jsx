@@ -4,6 +4,7 @@ import {
   Line,
   BarChart,
   Bar,
+  Cell,
   XAxis,
   YAxis,
   CartesianGrid,
@@ -125,12 +126,16 @@ export const IncidentsByCloudChart = ({ data }) => {
           <Legend 
             wrapperStyle={{ fontSize: '14px', color: '#e2e8f0' }}
           />
-          <Bar 
-            dataKey="incidents" 
-            fill="#818cf8"
+          <Bar
+            dataKey="incidents"
             radius={[8, 8, 0, 0]}
             name="Incidents"
-          />
+          >
+            {/* Render per-cloud colors using Cell — without Cell, Bar uses a single fill */}
+            {chartData.map((item) => (
+              <Cell key={item.cloud} fill={item.fill} />
+            ))}
+          </Bar>
         </BarChart>
       </ResponsiveContainer>
     </div>
