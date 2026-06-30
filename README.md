@@ -1,16 +1,16 @@
-# CloudTripwire — Multi-Cloud Honeytokens & Auto-Incident Response
+# CloudTripwire (Multi-Cloud Honeytokens & Auto-Incident Response)
 
 Plant decoy credentials, objects, and links across **AWS & Azure**.  
 When anything touches them, **auto-revoke access**, capture a **forensic evidence bundle**, and publish a full **incident timeline** to a dashboard.
 
-> **Status:** Complete. AWS + Azure pipelines live — honeytokens planted, detection active, automated response posting real incidents to the dashboard in under 30 seconds.
+> **Status:** Complete. AWS + Azure pipelines live - honeytokens planted, detection active, automated response posting real incidents to the dashboard in under 30 seconds.
 
 ---
 
 ## Why
 
 A decoy IAM key or S3 object should *never* be accessed legitimately.  
-Any touch is a guaranteed true-positive — no tuning, no baseline noise.  
+Any touch is a guaranteed true-positive - no tuning, no baseline noise.  
 CloudTripwire turns that signal into automated containment and a reproducible IR artifact, end-to-end in under 90 seconds.
 
 ---
@@ -128,7 +128,7 @@ cloudtripwire/
 
 ---
 
-## Quick start — dashboard only
+## Quick start (dashboard only)
 
 ### Backend
 ```bash
@@ -148,7 +148,7 @@ npm run dev
 # Dashboard: http://localhost:5173
 ```
 
-The UI ships with a **Mock Data** toggle — it works fully without the backend or any cloud infra.  
+The UI ships with a **Mock Data** toggle, it works fully without the backend or any cloud infra.  
 Flip to **Live API** once the backend is running.
 
 ---
@@ -222,7 +222,7 @@ Flip to **Live API** once the backend is running.
 
 ## Safety
 
-- All honeytokens deployed in **isolated AWS test accounts and Azure trial tenants** — no production access.
+- All honeytokens are deployed in **isolated AWS test accounts and Azure trial tenants**, with no production access.
 - Decoy IAM keys carry **zero IAM permissions** (they trigger on authentication, not authorisation).
 - All secrets are **immediately revokable** and rotated after each demo run.
 - Terraform state is stored locally; no credentials are committed.
@@ -241,8 +241,8 @@ Flip to **Live API** once the backend is running.
 - [x] Attacker simulation script (`honeytokens/test_trigger.py`)
 - [x] MITRE ATT&CK tagging on every ingest
 - [x] Azure Blob canary + Storage diagnostic logs → Log Analytics
-- [x] Sentinel analytic rule (KQL) — fires on any canary blob access
-- [x] Logic App IR playbook — POSTs structured incident to dashboard
+- [x] Sentinel analytic rule (KQL), fires on any canary blob access
+- [x] Logic App IR playbook, POSTs structured incident to dashboard
 - [x] Azure attacker simulation script (`azure/test_trigger.py`)
 - [ ] Evidence bundler (ZIP per incident with CloudTrail window + flow logs)
 - [ ] Terraform Azure module
