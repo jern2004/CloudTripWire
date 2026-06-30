@@ -1,6 +1,4 @@
-# ──────────────────────────────────────────────────────────────────────────────
 # CloudTripwire — AWS Infrastructure
-# ──────────────────────────────────────────────────────────────────────────────
 #
 # Provisions the complete honeytoken detection and response stack:
 #   - Decoy IAM user (the honeytoken credential)
@@ -18,7 +16,7 @@
 #
 # To tear everything down:
 #   terraform destroy
-# ──────────────────────────────────────────────────────────────────────────────
+
 
 terraform {
   required_providers {
@@ -34,7 +32,7 @@ provider "aws" {
   region = var.aws_region
 }
 
-# ── 1. Decoy IAM honeytoken user ───────────────────────────────────────────────
+# 1. Decoy IAM honeytoken user
 
 resource "aws_iam_user" "honeytoken" {
   name = var.honeytoken_username
@@ -49,7 +47,7 @@ resource "aws_iam_user" "honeytoken" {
 # No policies attached — zero permissions by design
 # Any API call using this user's keys is definitionally malicious
 
-# ── 2. S3 canary bucket ────────────────────────────────────────────────────────
+# 2. S3 canary Bucket
 
 resource "aws_s3_bucket" "canary" {
   bucket = var.canary_bucket_name
@@ -99,7 +97,7 @@ resource "aws_s3_object" "canary_db" {
   content = "-- Production database backup\n-- Date: 2025-10-01\n-- DO NOT SHARE"
 }
 
-# ── 3. CloudTrail ──────────────────────────────────────────────────────────────
+# 3. CloudTrail
 
 # Bucket to store CloudTrail logs
 resource "aws_s3_bucket" "trail_logs" {
@@ -168,7 +166,7 @@ resource "aws_cloudtrail" "main" {
   }
 }
 
-# ── 4. Lambda IAM role ─────────────────────────────────────────────────────────
+# 4. Lambda IAM role 
 
 resource "aws_iam_role" "lambda" {
   name = "cloudtripwire-lambda-role"
@@ -226,7 +224,7 @@ resource "aws_iam_role_policy" "lambda_response" {
   })
 }
 
-# ── 5. Lambda function ─────────────────────────────────────────────────────────
+# 5. Lambda function 
 
 # Package the Lambda code
 data "archive_file" "lambda" {
@@ -261,7 +259,7 @@ resource "aws_lambda_function" "responder" {
   depends_on = [aws_iam_role_policy_attachment.lambda_basic]
 }
 
-# ── 6. EventBridge rules ───────────────────────────────────────────────────────
+# 6. EventBridge rules
 
 # Rule 1: fires when the honeytoken IAM user's keys are used for any API call
 resource "aws_cloudwatch_event_rule" "honeytoken_iam" {
@@ -331,7 +329,7 @@ resource "aws_lambda_permission" "allow_eventbridge_s3" {
   source_arn    = aws_cloudwatch_event_rule.honeytoken_s3.arn
 }
 
-# ── Outputs ────────────────────────────────────────────────────────────────────
+# Outputs
 
 output "honeytoken_user_arn" {
   description = "ARN of the decoy IAM user"
