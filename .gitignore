@@ -1,5 +1,6 @@
 # ── Credentials — NEVER commit these ──────────────────────────────────────────
 honeytokens/honeytoken_keys.txt
+azure/config.json
 
 # ── Python ────────────────────────────────────────────────────────────────────
 __pycache__/
