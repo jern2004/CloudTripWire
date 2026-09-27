@@ -47,6 +47,8 @@
 
   "dashboard": {
     "api_url": "http://127.0.0.1:8000/api/incidents",
-    "note": "Replace with your ngrok URL for end-to-end testing e.g. https://abc123.ngrok.io/api/incidents"
+    "note": "Replace with your ngrok URL for end-to-end testing e.g. https://abc123.ngrok.io/api/incidents",
+    "api_key": "",
+    "api_key_note": "Optional. If set, must match the dashboard's INCIDENT_API_KEY (backend/.env). Leave blank for unauthenticated local dev."
   }
 }

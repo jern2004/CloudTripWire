@@ -48,6 +48,8 @@ DASHBOARD_URL = os.environ.get(
     "DASHBOARD_API_URL",
     "http://127.0.0.1:8000/api/incidents"
 )
+# Optional: must match the dashboard's INCIDENT_API_KEY if that's set.
+DASHBOARD_API_KEY = os.environ.get("DASHBOARD_API_KEY", "")
 
 
 # ── Helpers ────────────────────────────────────────────────────────────────────
@@ -84,6 +86,8 @@ def main():
     print("=" * 60)
     print(f"  Dashboard URL: {DASHBOARD_URL}")
     print(f"  (set DASHBOARD_API_URL env var to change)")
+    print(f"  Dashboard API key: {'set' if DASHBOARD_API_KEY else 'not set (unauthenticated)'}")
+    print(f"  (set DASHBOARD_API_KEY env var to match the dashboard's INCIDENT_API_KEY)")
 
     # ── 1. Enable Microsoft Sentinel (via REST API) ───────────────────────────
     section("1. Enable Microsoft Sentinel")
@@ -124,11 +128,15 @@ def main():
     section("2. Sentinel analytic rule")
 
     # KQL: detect any read access to the canary storage account's blob service
+    # AuthenticationType != 'AccountKey' already covers SAS (and anonymous/AAD too —
+    # deliberately broad, since account-key access is the only "legitimate maintenance"
+    # path we ever use ourselves; anything else touching the canary container is bait
+    # being triggered).
     kql_query = (
         "StorageBlobLogs "
         f"| where AccountName == '{STORAGE_ACCOUNT}' "
         "| where OperationName in ('GetBlob', 'ListBlobs', 'GetContainerProperties') "
-        "| where AuthenticationType != 'AccountKey' or AuthenticationType == 'SAS' "
+        "| where AuthenticationType != 'AccountKey' "
         "| project TimeGenerated, OperationName, CallerIpAddress, "
         "          AuthenticationType, Uri, UserAgentHeader, StatusCode"
     )
@@ -188,6 +196,10 @@ def main():
 
     # Logic App definition — triggered by HTTP (Sentinel will call it)
     # Posts a structured incident to the CloudTripwire dashboard
+    post_headers = {"Content-Type": "application/json"}
+    if DASHBOARD_API_KEY:
+        post_headers["X-API-Key"] = DASHBOARD_API_KEY
+
     logic_app_def = {
         "definition": {
             "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
@@ -216,7 +228,7 @@ def main():
                     "inputs": {
                         "method": "POST",
                         "uri": DASHBOARD_URL,
-                        "headers": {"Content-Type": "application/json"},
+                        "headers": post_headers,
                         "body": {
                             "cloud":        "Azure",
                             "principal":    "cloudtripwirecanary (SAS token honeytoken)",

@@ -4,13 +4,15 @@ from sqlalchemy import desc
 from typing import List, Optional
 from datetime import datetime, timedelta
 from app.schemas import (
-    IncidentResponse, 
+    IncidentResponse,
     IncidentCreate,
+    IncidentUpdate,
     TimeSeriesDataPoint
 )
 from app.database import get_db
 from app.models import Incident
 from app.core.utils import generate_incident_id, get_severity_level
+from app.core.security import verify_api_key
 
 router = APIRouter(prefix="/api", tags=["Incidents"])
 
@@ -57,12 +59,16 @@ async def get_incident(
     return incident
 
 
-@router.post("/incidents", response_model=IncidentResponse, status_code=201)
+@router.post("/incidents", response_model=IncidentResponse, status_code=201,
+             dependencies=[Depends(verify_api_key)])
 async def create_incident(
     incident: IncidentCreate,
     db: Session = Depends(get_db)
 ):
-    """Create a new incident"""
+    """
+    Create a new incident. Called by the AWS Lambda and Azure Logic App.
+    Requires X-API-Key header if INCIDENT_API_KEY is configured.
+    """
     # Generate unique ID
     incident_id = generate_incident_id()
     
@@ -109,28 +115,29 @@ async def create_incident(
     return db_incident
 
 
-@router.patch("/incident/{incident_id}", response_model=IncidentResponse)
+@router.patch("/incident/{incident_id}", response_model=IncidentResponse,
+              dependencies=[Depends(verify_api_key)])
 async def update_incident(
     incident_id: str,
-    update_data: dict,
+    update_data: IncidentUpdate,
     db: Session = Depends(get_db)
 ):
     """
     Update incident (mark as resolved)
     Frontend calls: markIncidentResolved(id) -> PATCH /api/incident/{id} with {status: 'Resolved'}
+    Requires X-API-Key header if INCIDENT_API_KEY is configured.
     """
     incident = db.query(Incident).filter(Incident.id == incident_id).first()
-    
+
     if not incident:
         raise HTTPException(status_code=404, detail=f"Incident {incident_id} not found")
-    
-    # Update status if provided
-    if "status" in update_data:
-        incident.status = update_data["status"]
-    
+
+    if update_data.status is not None:
+        incident.status = update_data.status
+
     db.commit()
     db.refresh(incident)
-    
+
     return incident
 
 

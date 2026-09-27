@@ -1,8 +1,11 @@
+import os
 import requests
 import time
 import sys
 
-API_BASE = "http://127.0.0.1:8000/api"
+# Override with: $env:API_BASE_URL="http://127.0.0.1:8080/api" (PowerShell)
+# if your backend isn't on the default port (e.g. port 8000 is Windows-reserved).
+API_BASE = os.environ.get("API_BASE_URL", "http://127.0.0.1:8000/api")
 
 # Sample incidents matching your frontend mock data
 SAMPLE_INCIDENTS = [
@@ -68,8 +71,9 @@ def create_sample_incidents():
     print()
     
     # Check if backend is running
+    health_url = API_BASE.rsplit("/api", 1)[0] + "/health"
     try:
-        response = requests.get(f"http://127.0.0.1:8000/health", timeout=2)
+        response = requests.get(health_url, timeout=2)
         if response.status_code == 200:
             print("✅ Backend is running!")
             print()

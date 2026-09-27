@@ -55,7 +55,11 @@
     
     <!-- Security Headers -->
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' http://127.0.0.1:8000 http://localhost:8000;" />
+    <!-- connect-src uses :* (any port) since the backend port is configurable via
+         VITE_API_BASE_URL (see frontend/.env.example) and shouldn't require editing
+         this CSP every time it changes. If you ever point the frontend at a
+         non-localhost API (e.g. an ngrok URL), add that exact origin here too. -->
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdnjs.cloudflare.com; font-src 'self' https://fonts.gstatic.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; connect-src 'self' http://127.0.0.1:* http://localhost:*;" />
     
     <!-- Structured Data (JSON-LD) for SEO -->
     <script type="application/ld+json">

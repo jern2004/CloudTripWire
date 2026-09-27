@@ -6,7 +6,7 @@ import {
   markIncidentResolved,
   MOCK_INCIDENT_DETAIL
 } from '../api/incidentAPI';
-import { ArrowLeft, CheckCircle, Loader, XCircle } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, CheckCircle, Loader, XCircle } from 'lucide-react';
 
 /**
  * IncidentDetailPage - Full page view for single incident with actions
@@ -130,18 +130,21 @@ const IncidentDetailPage = () => {
         </button>
 
         <div className="flex items-center space-x-3">
-          {/* Mock Data Toggle */}
+          {/* Mock Data Toggle — reflects whether the last live fetch actually
+              succeeded, not just which mode the user picked */}
           <button
             onClick={() => setUseMockData(!useMockData)}
             className={`
               px-4 py-2 rounded-lg text-sm font-medium transition-colors
-              ${useMockData 
-                ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50' 
-                : 'bg-green-500/20 text-green-400 border border-green-500/50'
+              ${useMockData
+                ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50'
+                : error
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/50'
+                  : 'bg-green-500/20 text-green-400 border border-green-500/50'
               }
             `}
           >
-            {useMockData ? '📊 Mock Data' : '🔗 Live API'}
+            {useMockData ? '📊 Mock Data' : error ? '⚠ Live API (unreachable)' : '🔗 Live API'}
           </button>
 
           {/* Mark Resolved Button */}
@@ -166,6 +169,16 @@ const IncidentDetailPage = () => {
           )}
         </div>
       </div>
+
+      {/* Fallback banner — only shown once we actually have data to display;
+          the full-page "Failed to Load Incident" error above only fires
+          when there's no incident at all */}
+      {error && incident && !useMockData && (
+        <div className="flex items-center gap-3 px-4 py-3 bg-red-500/10 border border-red-500/30 rounded-lg text-red-400 text-sm">
+          <AlertTriangle className="w-4 h-4 flex-shrink-0" />
+          Failed to load incident: {error} — showing mock data as fallback.
+        </div>
+      )}
 
       {/* Inline notification banner — replaces browser alert() */}
       {notification && (

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Literal
 
 
 class IncidentBase(BaseModel):
@@ -34,6 +34,11 @@ class IncidentResponse(IncidentBase):
     
     class Config:
         from_attributes = True
+
+
+class IncidentUpdate(BaseModel):
+    """Schema for updating an incident — currently just status"""
+    status: Optional[Literal["Active", "Resolved"]] = None
 
 
 class MetricsResponse(BaseModel):

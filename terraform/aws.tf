@@ -247,6 +247,7 @@ resource "aws_lambda_function" "responder" {
   environment {
     variables = {
       DASHBOARD_API_URL = var.dashboard_api_url
+      DASHBOARD_API_KEY = var.dashboard_api_key
       HONEYTOKEN_USER   = var.honeytoken_username
     }
   }
@@ -265,6 +266,10 @@ resource "aws_lambda_function" "responder" {
 resource "aws_cloudwatch_event_rule" "honeytoken_iam" {
   name        = "detect-honeytoken-iam"
   description = "CloudTripwire: fires when decoy IAM user credentials are used"
+
+  # Plain ENABLED skips read-only calls (List*/Get*/Describe*), which is exactly
+  # what an attacker runs first with a stolen key (e.g. sts get-caller-identity).
+  state = "ENABLED_WITH_ALL_CLOUDTRAIL_MANAGEMENT_EVENTS"
 
   event_pattern = jsonencode({
     source      = ["aws.iam", "aws.s3", "aws.sts", "aws.ec2", "aws.lambda", "aws.dynamodb", "aws.secretsmanager"]

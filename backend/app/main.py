@@ -37,6 +37,11 @@ async def startup_event():
     print(f"✅ {settings.APP_NAME} v{settings.APP_VERSION} is running!")
     print(f"📚 API Documentation: http://localhost:8000/docs")
     print(f"🔗 Frontend should connect to: http://127.0.0.1:8000/api")
+    if settings.INCIDENT_API_KEY:
+        print("🔒 INCIDENT_API_KEY is set — POST/PATCH on /api/incidents require X-API-Key")
+    else:
+        print("⚠️  INCIDENT_API_KEY is not set — incident write endpoints are UNAUTHENTICATED.")
+        print("    Set it in backend/.env before exposing this API via ngrok/publicly.")
 
 
 @app.get("/")

@@ -21,6 +21,12 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
     ]
     
+    # Incident write-endpoint auth — if unset, POST/PATCH on /api/incidents are
+    # unauthenticated (fine for local dev). Set this before exposing the API
+    # via ngrok/publicly, and set the SAME value as DASHBOARD_API_KEY on the
+    # Lambda / Logic App and as VITE_API_KEY on the frontend.
+    INCIDENT_API_KEY: Optional[str] = None
+
     # AWS Settings (optional - for future use)
     AWS_REGION: Optional[str] = None
     AWS_ACCESS_KEY_ID: Optional[str] = None

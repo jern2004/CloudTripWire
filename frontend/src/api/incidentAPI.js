@@ -2,9 +2,12 @@ import axios from 'axios';
 
 /**
  * Axios instance configured for CloudTripwire API
+ *
+ * baseURL and apiKey are read from Vite env vars so this can point at
+ * something other than localhost without editing source. See .env.example.
  */
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:8000/api',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000/api',
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
@@ -12,13 +15,13 @@ const api = axios.create({
 });
 
 /**
- * Request interceptor for adding auth tokens (if needed in future)
+ * Request interceptor — attaches X-API-Key if the backend's INCIDENT_API_KEY
+ * protection is enabled (see backend/.env.example). No-op if unset.
  */
 api.interceptors.request.use(
   (config) => {
-    // Add auth token here if needed
-    // const token = localStorage.getItem('token');
-    // if (token) config.headers.Authorization = `Bearer ${token}`;
+    const apiKey = import.meta.env.VITE_API_KEY;
+    if (apiKey) config.headers['X-API-Key'] = apiKey;
     return config;
   },
   (error) => Promise.reject(error)

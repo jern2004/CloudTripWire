@@ -83,16 +83,19 @@ const IncidentsPage = () => {
         </div>
 
         <div className="flex items-center gap-3">
-          {/* Mock / Live toggle */}
+          {/* Mock / Live toggle — reflects whether the last live fetch actually
+              succeeded, not just which mode the user picked */}
           <button
             onClick={() => setUseMockData(!useMockData)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors
               ${useMockData
                 ? 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/50'
-                : 'bg-green-500/20 text-green-400 border border-green-500/50'
+                : error
+                  ? 'bg-red-500/20 text-red-400 border border-red-500/50'
+                  : 'bg-green-500/20 text-green-400 border border-green-500/50'
               }`}
           >
-            {useMockData ? 'Mock Data' : 'Live API'}
+            {useMockData ? 'Mock Data' : error ? 'Live API (unreachable)' : 'Live API'}
           </button>
 
           <button

@@ -19,6 +19,9 @@ with open(CONFIG_PATH) as f:
 REGION        = CONFIG["aws"]["region"]
 FUNCTION_NAME = CONFIG["aws"]["lambda"]["function_name"]
 HONEYTOKEN_USER = CONFIG["aws"]["iam_honeytoken"]["username"]
+# Preserved from config.json so rerunning this script doesn't wipe out
+# whatever API key deploy_lambda.py originally set.
+DASHBOARD_KEY = CONFIG["dashboard"].get("api_key", "")
 
 if len(sys.argv) < 2:
     print("Usage: python update_dashboard_url.py <ngrok-url>")
@@ -35,6 +38,7 @@ lam.update_function_configuration(
     Environment={
         "Variables": {
             "DASHBOARD_API_URL": api_url,
+            "DASHBOARD_API_KEY": DASHBOARD_KEY,
             "HONEYTOKEN_USER":   HONEYTOKEN_USER,
         }
     }

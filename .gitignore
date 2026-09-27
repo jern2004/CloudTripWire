@@ -34,10 +34,13 @@ frontend/dist/
 terraform/.terraform/
 terraform/*.tfstate
 terraform/*.tfstate.backup
-terraform/.terraform.lock.hcl
+terraform/*.tfplan
+terraform/tfplan*.out
+# .terraform.lock.hcl is intentionally tracked — it pins provider versions, no secrets
 
 # ── OS / editor ───────────────────────────────────────────────────────────────
 .DS_Store
 .vscode/
+.claude/
 *.swp
 *.swo

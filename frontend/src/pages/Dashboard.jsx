@@ -10,12 +10,12 @@ import {
   MOCK_INCIDENTS,
   MOCK_TIMESERIES 
 } from '../api/incidentAPI';
-import { 
-  AlertTriangle, 
-  Activity, 
-  Cloud, 
-  CloudOff,
-  RefreshCw 
+import {
+  AlertTriangle,
+  Activity,
+  Cloud,
+  Cloudy,
+  RefreshCw
 } from 'lucide-react';
 
 /**
@@ -30,6 +30,7 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [useMockData, setUseMockData] = useState(true); // Toggle for mock vs real API
+  const [isFallback, setIsFallback] = useState(false); // true when Live fetch failed and we silently fell back to mock data
 
   /**
    * Fetch all dashboard data.
@@ -40,6 +41,7 @@ const Dashboard = () => {
     try {
       setLoading(true);
       setError(null);
+      setIsFallback(false);
 
       if (useMockData) {
         // Use mock data for development/testing
@@ -63,8 +65,10 @@ const Dashboard = () => {
     } catch (err) {
       console.error('Error fetching dashboard data:', err);
       setError(err.message);
-      
-      // Fallback to mock data if API fails
+
+      // Fallback to mock data if API fails — but remember it's a fallback,
+      // so the UI doesn't keep claiming "● Live" while showing fake data.
+      setIsFallback(!useMockData);
       setMetrics(MOCK_METRICS);
       setIncidents(MOCK_INCIDENTS);
       setTimeSeriesData(MOCK_TIMESERIES);
@@ -169,7 +173,12 @@ const Dashboard = () => {
       {/* Last refresh indicator */}
       <div className="text-sm text-dark-muted">
         Last updated: {lastRefresh.toLocaleTimeString()}
-        {!useMockData && <span className="ml-2 text-green-400">● Live</span>}
+        {!useMockData && !isFallback && <span className="ml-2 text-green-400">● Live</span>}
+        {!useMockData && isFallback && (
+          <span className="ml-2 text-red-400">
+            ⚠ Live API unreachable — showing fallback data
+          </span>
+        )}
       </div>
 
       {/* Metric Cards Grid */}
@@ -195,7 +204,7 @@ const Dashboard = () => {
         <MetricCard
           title="Azure Incidents"
           value={metrics?.azure_incidents || 0}
-          icon={CloudOff}
+          icon={Cloudy}
           color="blue"
         />
       </div>

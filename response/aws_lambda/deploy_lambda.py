@@ -38,6 +38,7 @@ S3_RULE       = AWS_CFG["eventbridge"]["s3_rule_name"]
 FUNCTION_NAME = AWS_CFG["lambda"]["function_name"]
 ROLE_NAME     = AWS_CFG["lambda"]["role_name"]
 DASHBOARD_URL = CONFIG["dashboard"]["api_url"]
+DASHBOARD_KEY = CONFIG["dashboard"].get("api_key", "")
 HONEYTOKEN_USER = AWS_CFG["iam_honeytoken"]["username"]
 
 LAMBDA_FILE   = Path(__file__).parent / "isolate_and_log.py"
@@ -181,6 +182,7 @@ def deploy_lambda(role_arn: str, zip_bytes: bytes) -> str:
 
     env_vars = {
         "DASHBOARD_API_URL": DASHBOARD_URL,
+        "DASHBOARD_API_KEY": DASHBOARD_KEY,
         "HONEYTOKEN_USER":   HONEYTOKEN_USER,
     }
 

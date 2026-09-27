@@ -17,6 +17,7 @@ Triggered by:
 
 Environment variables (set in Lambda console):
   DASHBOARD_API_URL  — your FastAPI endpoint e.g. https://abc123.ngrok.io/api/incidents
+  DASHBOARD_API_KEY  — optional: must match the dashboard's INCIDENT_API_KEY if set
   HONEYTOKEN_USER    — the decoy IAM username (default: honeytoken-user)
   QUARANTINE_SG_ID   — optional: a Security Group with no rules to isolate EC2 instances
 """
@@ -32,6 +33,7 @@ from datetime import datetime, timezone
 # ── Config from environment variables ─────────────────────────────────────────
 
 DASHBOARD_URL   = os.environ.get("DASHBOARD_API_URL", "http://127.0.0.1:8000/api/incidents")
+DASHBOARD_KEY   = os.environ.get("DASHBOARD_API_KEY", "")
 HONEYTOKEN_USER = os.environ.get("HONEYTOKEN_USER",   "honeytoken-user")
 QUARANTINE_SG   = os.environ.get("QUARANTINE_SG_ID",  None)
 
@@ -256,10 +258,13 @@ def post_to_dashboard(incident: dict) -> bool:
     """POSTs the incident to your CloudTripwire FastAPI dashboard."""
     try:
         body = json.dumps(incident).encode("utf-8")
+        headers = {"Content-Type": "application/json"}
+        if DASHBOARD_KEY:
+            headers["X-API-Key"] = DASHBOARD_KEY
         req  = urllib.request.Request(
             DASHBOARD_URL,
             data=body,
-            headers={"Content-Type": "application/json"},
+            headers=headers,
             method="POST"
         )
         with urllib.request.urlopen(req, timeout=10) as resp:

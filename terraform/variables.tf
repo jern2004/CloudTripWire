@@ -18,6 +18,13 @@ variable "dashboard_api_url" {
   default     = "http://127.0.0.1:8000/api/incidents"
 }
 
+variable "dashboard_api_key" {
+  description = "Optional shared secret sent as X-API-Key. Must match the dashboard's INCIDENT_API_KEY if that's set."
+  type        = string
+  default     = ""
+  sensitive   = true
+}
+
 variable "honeytoken_username" {
   description = "IAM username for the decoy honeytoken user"
   type        = string
